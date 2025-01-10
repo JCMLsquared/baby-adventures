@@ -1,0 +1,101 @@
+.background-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+  overflow: hidden;
+  z-index: 0;
+}
+
+.floating-elements {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.floating-element {
+  position: absolute;
+  animation: float 20s infinite linear;
+  opacity: 0.3;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.3));
+  z-index: 1;
+}
+
+.floating-element.star {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23FFD700' d='M12 .587l3.668 7.431 8.332 1.21-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.21z'/%3E%3C/svg%3E");
+  width: 40px;
+  height: 40px;
+}
+
+.floating-element.heart {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23FF69B4' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E");
+  width: 30px;
+  height: 30px;
+}
+
+.floating-element.cloud {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%2387CEEB' d='M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z'/%3E%3C/svg%3E");
+  width: 50px;
+  height: 50px;
+}
+
+.floating-element.balloon {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23FF69B4' d='M12 2C8.13 2 5 5.13 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.87-3.13-7-7-7z'/%3E%3C/svg%3E");
+  width: 45px;
+  height: 45px;
+}
+
+@keyframes float {
+  0% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+    opacity: 0.2;
+  }
+  25% {
+    transform: translate(50px, 50px) rotate(90deg) scale(1.1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translate(100px, 100px) rotate(180deg) scale(1);
+    opacity: 0.2;
+  }
+  75% {
+    transform: translate(50px, 50px) rotate(270deg) scale(1.1);
+    opacity: 0.3;
+  }
+  100% {
+    transform: translate(0, 0) rotate(360deg) scale(1);
+    opacity: 0.2;
+  }
+}
+
+/* Position elements with more spread */
+.floating-element:nth-child(1) { top: 5%; left: 5%; animation-delay: 0s; }
+.floating-element:nth-child(2) { top: 15%; left: 35%; animation-delay: -5s; }
+.floating-element:nth-child(3) { top: 25%; left: 65%; animation-delay: -10s; }
+.floating-element:nth-child(4) { top: 65%; left: 10%; animation-delay: -15s; }
+.floating-element:nth-child(5) { top: 55%; left: 55%; animation-delay: -7s; }
+.floating-element:nth-child(6) { top: 75%; left: 80%; animation-delay: -12s; }
+.floating-element:nth-child(7) { top: 45%; left: 25%; animation-delay: -3s; }
+.floating-element:nth-child(8) { top: 35%; left: 75%; animation-delay: -8s; }
+
+/* Add subtle gradient overlay */
+.background-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at center, transparent 0%, rgba(255, 255, 255, 0.1) 100%);
+  pointer-events: none;
+  z-index: 2;
+} 

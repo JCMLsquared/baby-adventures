@@ -1,0 +1,1 @@
+{"scripts":{"build":"cd baby-adventures-frontend && npm run build","start":"concurrently \"cd baby-adventures-frontend && npm run dev\" \"cd baby-adventures-backend && node server.js\"","build-and-start":"npm run build && npm run start"},"devDependencies":{"concurrently":"^9.1.0"},"dependencies":{"form-data":"^4.0.1","mongodb":"^6.11.0","mongoos":"^0.0.1-security"}}
