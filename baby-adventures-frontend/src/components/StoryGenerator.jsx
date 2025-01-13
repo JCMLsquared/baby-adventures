@@ -92,7 +92,12 @@ function StoryGenerator({
   useEffect(() => {
     if (currentStory) {
       setStoryId(currentStory.storyId || currentStory._id);
-      setChapters(currentStory.pages || []);
+      // Ensure pages have correct page numbers
+      const pagesWithCorrectNumbers = (currentStory.pages || []).map((page, index) => ({
+        ...page,
+        pageNumber: index + 1
+      }));
+      setChapters(pagesWithCorrectNumbers);
       setCurrentChapter(currentStory.currentPage - 1 || 0);
       setAgeGroup(currentStory.ageGroup);
       setTheme(currentStory.theme);
@@ -368,7 +373,8 @@ function StoryGenerator({
         },
         body: JSON.stringify({
           story_id: storyId,
-          current_page: currentChapter,
+          current_page: currentChapter + 1,  // Send 1-based page number
+          previous_text: chapters[currentChapter]?.text || '',
           age_group: ageGroup,
           theme,
           character_name: characterName,
@@ -383,9 +389,18 @@ function StoryGenerator({
       }
 
       const data = await response.json();
+      
+      // Double-check we're not getting the same text back
+      const currentText = chapters[currentChapter]?.text || '';
+      const newText = cleanText(data.story_text);
+      
+      if (currentText === newText) {
+        throw new Error('Generated text is the same as the current chapter. Please try again.');
+      }
+
       setChapters(prev => [...prev, {
-        pageNumber: prev.length + 1,  // Calculate page number based on current chapters length
-        text: data.story_text,
+        pageNumber: prev.length + 1,
+        text: newText,
         image: data.image
       }]);
       setCurrentChapter(prev => prev + 1);
@@ -595,12 +610,12 @@ function StoryGenerator({
       <div className="story-content">
         {currentPage && (
           <>
-            <h2>Chapter {currentPage.pageNumber}</h2>
+            <h2>Chapter {currentChapter + 1}</h2>
             <div className="story-image">
               {currentPage.image && (
                 <img 
                   src={`data:image/png;base64,${currentPage.image}`} 
-                  alt={`Chapter ${currentPage.pageNumber}`} 
+                  alt={`Chapter ${currentChapter + 1}`} 
                 />
               )}
             </div>
@@ -624,14 +639,27 @@ function StoryGenerator({
         )}
         {currentChapter < chapters.length - 1 ? (
           <button 
-            onClick={() => setCurrentChapter(prev => prev + 1)}
+            onClick={() => {
+              if (chapters[currentChapter + 1]?.text !== chapters[currentChapter]?.text) {
+                setCurrentChapter(prev => prev + 1);
+              } else {
+                setError("Duplicate chapter detected. Generating new content...");
+                generateNextChapter();
+              }
+            }}
             className="nav-button"
           >
             Next Page
           </button>
         ) : currentChapter < 4 ? (
           <button 
-            onClick={generateNextChapter}
+            onClick={async () => {
+              if (chapters[currentChapter]?.text) {
+                await generateNextChapter();
+              } else {
+                setError("Previous chapter generation failed. Please try again.");
+              }
+            }}
             disabled={isGeneratingNext}
             className="nav-button"
           >
