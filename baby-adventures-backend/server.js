@@ -251,6 +251,7 @@ async function generateImage(story_text, age_group, storyId) {
       formData.append('prompt', safePrompt);
       formData.append('negative_prompt', negativePrompt);
       formData.append('output_format', 'jpeg');
+      formData.append('seed', pageSeed.toString());
 
       const response = await fetch(
         `${STABILITY_API_HOST}/v2beta/stable-image/generate/sd3`,
@@ -291,7 +292,8 @@ async function generateImage(story_text, age_group, storyId) {
         formData.append('negative_prompt', negativePrompt);
         formData.append('output_format', 'jpeg');
         formData.append('init_image', imageBuffer);
-        formData.append('image_strength', '0.35'); // Lower strength to maintain more character consistency
+        formData.append('image_strength', '0.2');
+        formData.append('seed', pageSeed.toString());
 
         const response = await fetch(
           `${STABILITY_API_HOST}/v2beta/stable-image/generate/sd3`,
@@ -993,6 +995,38 @@ app.post('/api/text_to_speech', authenticateToken, async (req, res) => {
     console.error('Error in text_to_speech:', error);
     res.status(500).json({ error: 'Failed to generate speech' });
   }
+});
+
+// Global character state (for demonstration; ideally store in DB)
+let characterState = {
+    name: 'Baby Hero',
+    health: 100,
+    inventory: [],
+    unlockedAbilities: []
+};
+
+// Sample route to get a specific chapter
+app.get('/chapters/:chapterId', (req, res) => {
+    const chapterId = req.params.chapterId;
+    // Example: fetch chapter data from some data source
+    const chapterData = {
+        id: chapterId,
+        title: `Chapter ${chapterId}`,
+        content: `This is the content for chapter ${chapterId}.`
+        // ... possibly other fields ...
+    };
+
+    // Merge or update the characterState based on events from the current chapter
+    // e.g. if the character unlocks a new ability in chapter 2
+    if (chapterId === '2' && !characterState.unlockedAbilities.includes('crawl')) {
+        characterState.unlockedAbilities.push('crawl');
+    }
+
+    // Return both the updated character state and chapter data
+    return res.json({
+        chapterData,
+        characterState
+    });
 });
 
 const PORT = process.env.PORT || 3001;
