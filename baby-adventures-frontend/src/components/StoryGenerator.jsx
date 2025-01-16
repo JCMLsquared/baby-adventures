@@ -48,22 +48,28 @@ function StoryGenerator({
   const cleanText = (text) => {
     if (!text) return '';
     
-    // First, remove any undefined occurrences
+    // Remove only specific unwanted patterns while preserving narrative flow
     let cleaned = text
-      .replace(/\bundefined\b/g, '')  // Remove standalone undefined words
-      .replace(/undefined$/, '')      // Remove undefined at the end
-      .replace(/([.!?])\s*undefined/g, '$1')  // Remove undefined after punctuation
+      .replace(/\bundefined\b/g, '')
+      .replace(/undefined$/, '')
+      .replace(/([.!?])\s*undefined/g, '$1')
       .trim();
     
-    // Then remove any unwanted prefixes
+    // Only remove introductory phrases that don't add to the story
     cleaned = cleaned
-      .replace(/^[Hh]ere'?s? (?:is )?(?:a )?(?:story for )?(?:toddlers )?(?:aged )?(?:\d-\d|\d\+)?[:]\s*/i, '')
-      .replace(/^\s*Chapter \d+[:.]\s*/i, '')
+      .replace(/^(?:Here is |Here's )?(?:a )?(?:story for )?(?:toddlers )?(?:aged )?(?:\d-\d|\d\+)?[:]\s*/i, '')
       .trim();
     
-    // Ensure the first character is preserved and capitalized
+    // Preserve chapter markers but standardize format
+    cleaned = cleaned.replace(/^Chapter \d+[:.]\s*/i, '');
+    
+    // Ensure proper capitalization and punctuation
     if (cleaned.length > 0) {
       cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+      // Ensure the text ends with proper punctuation
+      if (!cleaned.match(/[.!?]$/)) {
+        cleaned += '.';
+      }
     }
     
     return cleaned;
@@ -357,14 +363,39 @@ function StoryGenerator({
     }
   };
 
+  // Enhanced story context management
+  const getStoryContext = () => {
+    // Get the last 2 chapters for immediate context
+    const recentChapters = chapters
+      .slice(Math.max(0, currentChapter - 2), currentChapter + 1)
+      .map(chapter => chapter.text)
+      .join('\n\n');
+    
+    // Extract key story elements
+    const storyElements = {
+      mainCharacter: `${characterName} the ${characterType}`,
+      setting: setting,
+      currentLocation: setting, // This could be updated as the story progresses
+      theme: theme,
+      ageGroup: ageGroup,
+      currentChapterNumber: currentChapter + 1
+    };
+    
+    return { recentChapters, storyElements };
+  };
+
   const generateNextChapter = async () => {
-    if (!storyId) return;
-
-    setIsGeneratingNext(true);
-    setError(null);
-
     try {
+      setIsGeneratingNext(true);
+      setError(null);
+
       const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Please log in to continue the story');
+      }
+
+      const { recentChapters, storyElements } = getStoryContext();
+
       const response = await fetch('http://localhost:3001/api/next_page', {
         method: 'POST',
         headers: {
@@ -373,13 +404,15 @@ function StoryGenerator({
         },
         body: JSON.stringify({
           story_id: storyId,
-          current_page: currentChapter + 1,  // Send 1-based page number
-          previous_text: chapters[currentChapter]?.text || '',
+          current_page: currentChapter + 1,
+          previous_text: recentChapters,
           age_group: ageGroup,
           theme,
           character_name: characterName,
           character_type: characterType,
-          setting
+          setting,
+          story_elements: storyElements,
+          total_chapters: chapters.length
         }),
       });
 
@@ -390,12 +423,18 @@ function StoryGenerator({
 
       const data = await response.json();
       
-      // Double-check we're not getting the same text back
+      // Enhanced validation of new content
       const currentText = chapters[currentChapter]?.text || '';
       const newText = cleanText(data.story_text);
       
+      // Check for content quality and continuity
       if (currentText === newText) {
         throw new Error('Generated text is the same as the current chapter. Please try again.');
+      }
+
+      // Validate the new text maintains story elements
+      if (!newText.toLowerCase().includes(characterName.toLowerCase())) {
+        throw new Error('Generated text does not maintain character continuity. Retrying...');
       }
 
       setChapters(prev => [...prev, {
@@ -409,6 +448,10 @@ function StoryGenerator({
       audioManager.playSound('ERROR');
       console.error('Error generating next chapter:', error);
       setError(error.message);
+      // Retry once if it's a continuity error
+      if (error.message.includes('continuity')) {
+        generateNextChapter();
+      }
     } finally {
       setIsGeneratingNext(false);
     }
