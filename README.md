@@ -90,10 +90,9 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Acknowledgments 🙏
 
 - Google Gemini AI for powering story generation
-- All contributors and supporters of the project
+- OpenAI for providing the voice narration
+- Stability AI for providing image generation
 
-## Contact 📧
 
-[Your Name] - [your.email@example.com]
 
-Project Link: https://github.com/[your-username]/baby-adventures 
+Project Link: https://github.com/JCMLsquared/baby-adventures
